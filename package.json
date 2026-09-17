@@ -1,0 +1,19 @@
+{
+  "name": "rich-text-editor",
+  "version": "1.0.0",
+  "description": "A TinyMCE-style WYSIWYG editor component with file and image uploads handled by [`@uploadcare/file-uploader`](https://github.com/uploadcare/file-uploader).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rippera/rich-text-editor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rippera/rich-text-editor/issues"
+  },
+  "homepage": "https://github.com/rippera/rich-text-editor#readme"
+}
