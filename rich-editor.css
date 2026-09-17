@@ -1,0 +1,748 @@
+/* RichEditor — component styles.
+   Every token is a CSS variable, so you can restyle the editor from outside
+   by overriding them on .re or on a parent element. */
+
+.re {
+  --re-paper: #ffffff;
+  --re-chrome: #f2f3f5;
+  --re-chrome-2: #e7e9ed;
+  --re-line: #d3d7de;
+  --re-line-soft: #e3e6eb;
+  --re-ink: #1b1e24;
+  --re-ink-2: #5b616e;
+  --re-ink-3: #878d99;
+  --re-accent: #1f5d4c;
+  --re-accent-soft: #e2efea;
+  --re-radius: 6px;
+  --re-ui: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, sans-serif;
+  --re-serif: 'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+  --re-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--re-paper);
+  color: var(--re-ink);
+  border: 1px solid var(--re-line);
+  border-radius: var(--re-radius);
+  font-family: var(--re-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .re:not([data-theme='light']) {
+    --re-paper: #15181d;
+    --re-chrome: #1b1f26;
+    --re-chrome-2: #232830;
+    --re-line: #333a45;
+    --re-line-soft: #272d36;
+    --re-ink: #e6e9ee;
+    --re-ink-2: #a3aab7;
+    --re-ink-3: #767e8c;
+    --re-accent: #6fc7ab;
+    --re-accent-soft: #1e3730;
+  }
+}
+
+.re[data-theme='dark'] {
+  --re-paper: #15181d;
+  --re-chrome: #1b1f26;
+  --re-chrome-2: #232830;
+  --re-line: #333a45;
+  --re-line-soft: #272d36;
+  --re-ink: #e6e9ee;
+  --re-ink-2: #a3aab7;
+  --re-ink-3: #767e8c;
+  --re-accent: #6fc7ab;
+  --re-accent-soft: #1e3730;
+}
+
+.re *,
+.re *::before,
+.re *::after {
+  box-sizing: border-box;
+}
+
+.re-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  border-radius: 0;
+  border: 0;
+  height: 100vh;
+}
+
+/* `disabled`: the whole thing reads as inert, like a disabled form field —
+   dimmed, no editing cursor, every toolbar control turned off. */
+.re.re-disabled {
+  opacity: 0.6;
+}
+.re.re-disabled .re-content {
+  cursor: not-allowed;
+}
+
+/* `readOnly`: content stays fully legible and selectable/copyable — only the
+   controls that would change it are turned off (source/fullscreen excepted,
+   see rich-editor.js). */
+.re.re-readonly .re-content {
+  cursor: default;
+}
+
+/* ------------------------------------------------------------- toolbar */
+
+.re-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: linear-gradient(var(--re-chrome), var(--re-chrome-2));
+  border-bottom: 1px solid var(--re-line);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.re-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.re-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 3px 5px;
+  background: var(--re-line);
+}
+.re-spacer {
+  flex: 1;
+}
+
+.re-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  min-width: 28px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--re-ink-2);
+  font: inherit;
+  cursor: pointer;
+}
+.re-btn:hover {
+  background: var(--re-paper);
+  color: var(--re-ink);
+  border-color: var(--re-line-soft);
+}
+.re-btn:focus-visible {
+  outline: 2px solid var(--re-accent);
+  outline-offset: 1px;
+}
+.re-btn.on {
+  background: var(--re-accent-soft);
+  color: var(--re-accent);
+  border-color: transparent;
+}
+.re-btn:disabled,
+.re-select:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none; /* also keeps the hover tooltip from showing on a control that can't be used */
+}
+.re-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.re-select {
+  border: 1px solid var(--re-line-soft);
+  background: var(--re-paper);
+  color: var(--re-ink);
+  padding: 0 6px;
+  font-size: 13px;
+}
+.re-select:hover {
+  border-color: var(--re-ink-3);
+}
+.re-select-block {
+  width: 118px;
+}
+.re-select-font {
+  width: 118px;
+}
+.re-select-size {
+  width: 72px;
+}
+
+.re-swatch {
+  flex-direction: column;
+  gap: 0;
+}
+.re-bar {
+  width: 16px;
+  height: 3px;
+  border-radius: 1px;
+  margin-top: 1px;
+}
+
+/* Tooltips — CSS-driven so they appear almost immediately on hover, instead
+   of the ~1s delay a native `title` attribute gets from the browser. Text
+   comes from data-tip; aria-label carries the same text for screen readers. */
+.re-btn[data-tip],
+.re-select[data-tip] {
+  position: relative;
+}
+
+.re-btn[data-tip]::after,
+.re-select[data-tip]::after,
+.re-btn[data-tip]::before,
+.re-select[data-tip]::before {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 70;
+  transition:
+    opacity 0.1s ease,
+    transform 0.1s ease;
+}
+.re-btn[data-tip]::after,
+.re-select[data-tip]::after {
+  content: attr(data-tip);
+  transform: translate(-50%, 2px) scale(0.97);
+  transform-origin: top center;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--re-ink);
+  color: var(--re-paper);
+  font-family: var(--re-ui);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.re-btn[data-tip]::before,
+.re-select[data-tip]::before {
+  content: '';
+  transform: translateX(-50%);
+  margin-top: 3px;
+  border: 4px solid transparent;
+  border-bottom-color: var(--re-ink);
+}
+.re-btn[data-tip]:hover::after,
+.re-btn[data-tip]:focus-visible::after,
+.re-select[data-tip]:hover::after,
+.re-select[data-tip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 2px) scale(1);
+  transition-delay: 0.12s;
+}
+.re-btn[data-tip]:hover::before,
+.re-btn[data-tip]:focus-visible::before,
+.re-select[data-tip]:hover::before,
+.re-select[data-tip]:focus-visible::before {
+  opacity: 1;
+  transition-delay: 0.12s;
+}
+/* An open dropdown/popover shouldn't leave its own tooltip stuck open behind it. */
+.re-btn.on[data-tip]::after,
+.re-btn.on[data-tip]::before {
+  transition-delay: 0s;
+}
+
+/* The trailing toolbar buttons (source view, fullscreen) sit at the right
+   edge of a container with overflow:hidden — a centered tooltip there would
+   spill past the edge and get clipped. Anchor to the button's right edge
+   and open leftward instead. */
+.re-btn.re-tip-end[data-tip]::after,
+.re-btn.re-tip-end[data-tip]::before {
+  left: auto;
+  right: 0;
+}
+.re-btn.re-tip-end[data-tip]::after {
+  transform: translate(0, 2px) scale(0.97);
+  transform-origin: top right;
+}
+.re-btn.re-tip-end[data-tip]:hover::after,
+.re-btn.re-tip-end[data-tip]:focus-visible::after {
+  transform: translate(0, 2px) scale(1);
+}
+.re-btn.re-tip-end[data-tip]::before {
+  right: 10px; /* nudges the arrow back toward the icon rather than the button's far edge */
+}
+
+/* Mirror image of the above: the leading toolbar buttons (undo, and
+   align-left when it wraps to the start of a line) sit at the left edge —
+   anchor there and open rightward instead of centering and clipping. */
+.re-btn.re-tip-start[data-tip]::after,
+.re-btn.re-tip-start[data-tip]::before {
+  left: 0;
+  right: auto;
+}
+.re-btn.re-tip-start[data-tip]::after {
+  transform: translate(0, 2px) scale(0.97);
+  transform-origin: top left;
+}
+.re-btn.re-tip-start[data-tip]:hover::after,
+.re-btn.re-tip-start[data-tip]:focus-visible::after {
+  transform: translate(0, 2px) scale(1);
+}
+.re-btn.re-tip-start[data-tip]::before {
+  left: 10px; /* nudges the arrow back toward the icon rather than the button's far edge */
+}
+
+/* ------------------------------------------------------------ popovers */
+
+.re-pops {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+.re-pop {
+  position: absolute;
+  display: none;
+  pointer-events: auto;
+  background: var(--re-paper);
+  border: 1px solid var(--re-line);
+  border-radius: var(--re-radius);
+  box-shadow: 0 8px 24px -12px rgba(20, 25, 35, 0.35);
+  padding: 10px;
+}
+.re-pop.open {
+  display: block;
+}
+
+.re-palette {
+  display: grid;
+  grid-template-columns: repeat(10, 18px);
+  gap: 4px;
+}
+.re-palette button {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.re-palette button:focus-visible {
+  outline: 2px solid var(--re-accent);
+  outline-offset: 1px;
+}
+
+.re-pop-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--re-line-soft);
+}
+.re-pop-foot input[type='color'] {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--re-line);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.re-linkish {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--re-accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.re-linkish:hover {
+  text-decoration: underline;
+}
+
+.re-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 16px);
+  gap: 3px;
+}
+.re-grid i {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--re-line);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.re-grid i.lit {
+  background: var(--re-accent-soft);
+  border-color: var(--re-accent);
+}
+.re-grid-label {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--re-ink-2);
+}
+
+/* ------------------------------------------------------- editing surface */
+
+.re-surface {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.re-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 38px 56px;
+  outline: none;
+  font-family: var(--re-serif);
+  font-size: 16px;
+  line-height: 1.65;
+  max-height: 420px;
+}
+.re-content:empty::before {
+  content: attr(data-placeholder);
+  color: var(--re-ink-3);
+  font-style: italic;
+}
+.re-content > *:first-child {
+  margin-top: 0;
+}
+.re-content h1 {
+  font-size: 1.85em;
+  line-height: 1.2;
+  margin: 1.2em 0 0.4em;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.re-content h2 {
+  font-size: 1.45em;
+  line-height: 1.25;
+  margin: 1.2em 0 0.4em;
+  font-weight: 600;
+}
+.re-content h3 {
+  font-size: 1.18em;
+  margin: 1.2em 0 0.4em;
+  font-weight: 600;
+}
+.re-content h4 {
+  font-size: 1em;
+  margin: 1.2em 0 0.4em;
+  font-weight: 600;
+  color: var(--re-ink-2);
+}
+.re-content p {
+  margin: 0 0 0.85em;
+}
+.re-content ul,
+.re-content ol {
+  margin: 0 0 0.85em;
+  padding-left: 1.6em;
+}
+.re-content ul {
+  list-style: disc outside;
+}
+.re-content ol {
+  list-style: decimal outside;
+}
+.re-content ul ul {
+  list-style-type: circle;
+}
+.re-content ul ul ul {
+  list-style-type: square;
+}
+.re-content ol ol {
+  list-style-type: lower-alpha;
+}
+.re-content li {
+  margin: 0.2em 0;
+  display: list-item;
+}
+.re-content li::marker {
+  color: inherit;
+}
+.re-content a {
+  color: var(--re-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.re-content blockquote {
+  margin: 1em 0;
+  padding: 0.2em 0 0.2em 1.1em;
+  border-left: 3px solid var(--re-accent);
+  color: var(--re-ink-2);
+  font-style: italic;
+}
+.re-content pre {
+  font-family: var(--re-mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  font-style: normal;
+  background: var(--re-chrome);
+  border: 1px solid var(--re-line-soft);
+  border-radius: 5px;
+  padding: 12px 14px;
+  margin: 1em 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+.re-content code {
+  font-family: var(--re-mono);
+  font-size: 0.9em;
+  background: var(--re-chrome);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.re-content pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+.re-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.4em 0;
+}
+.re-content hr {
+  border: 0;
+  border-top: 1px solid var(--re-line);
+  margin: 1.6em 0;
+}
+.re-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  font-size: 0.95em;
+}
+.re-content th,
+.re-content td {
+  border: 1px solid var(--re-line);
+  padding: 7px 10px;
+  min-width: 38px;
+  vertical-align: top;
+}
+.re-content th {
+  background: var(--re-chrome);
+  font-weight: 600;
+  text-align: left;
+}
+.re-content mark {
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* uploaded non-image files render as a chip */
+.re-content .re-file {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--re-ui);
+  font-size: 14px;
+  padding: 7px 12px;
+  border: 1px solid var(--re-line);
+  border-radius: 5px;
+  background: var(--re-chrome);
+  text-decoration: none;
+  color: var(--re-ink);
+}
+.re-content .re-file:hover {
+  border-color: var(--re-accent);
+}
+.re-content .re-file span {
+  color: var(--re-ink-3);
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------- source view */
+
+.re-source {
+  display: none;
+  flex: 1;
+  width: 100%;
+  border: 0;
+  resize: none;
+  outline: none;
+  padding: 22px 26px;
+  background: var(--re-paper);
+  color: var(--re-ink);
+  font-family: var(--re-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+.re-source-mode .re-content {
+  display: none;
+}
+.re-source-mode .re-source {
+  display: block;
+}
+.re-source-mode .re-toolbar .re-group:not(:last-child) {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------- status bar */
+
+.re-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 12px;
+  border-top: 1px solid var(--re-line);
+  background: var(--re-chrome);
+  color: var(--re-ink-3);
+  font-size: 12px;
+}
+.re-crumbs {
+  flex: 1;
+  min-width: 100px;
+  font-family: var(--re-mono);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.re-counts {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ dialogs */
+
+.re-dialog {
+  border: 1px solid var(--re-line);
+  border-radius: var(--re-radius);
+  padding: 0;
+  background: var(--re-paper);
+  color: var(--re-ink);
+  width: min(420px, calc(100vw - 32px));
+  font-family: var(--re-ui);
+}
+.re-dialog::backdrop {
+  background: rgba(15, 18, 24, 0.45);
+}
+.re-dialog h2 {
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--re-line-soft);
+}
+.re-dbody {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.re-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.re-field span {
+  font-size: 12px;
+  color: var(--re-ink-2);
+}
+.re-field input {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 9px;
+  border: 1px solid var(--re-line);
+  border-radius: 4px;
+  background: var(--re-chrome);
+  color: var(--re-ink);
+  width: 100%;
+}
+.re-field input:focus {
+  outline: 2px solid var(--re-accent);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+.re-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--re-ink-2);
+}
+.re-dfoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--re-line-soft);
+}
+.re-b {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 1px solid var(--re-line);
+  border-radius: 4px;
+  background: var(--re-paper);
+  color: var(--re-ink);
+  cursor: pointer;
+}
+.re-b:hover {
+  border-color: var(--re-ink-3);
+}
+.re-b.primary {
+  background: var(--re-accent);
+  border-color: var(--re-accent);
+  color: #fff;
+}
+
+/* --------------------------------------------- uploadcare headless host */
+
+/* The uploader component must stay in the DOM for its modal to work, but the
+   default button is hidden by the `headless` attribute. This keeps the empty
+   host from taking up layout space. */
+.re-uc {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+/* Match the Uploadcare dialog to the editor's accent. */
+.re uc-file-uploader-regular {
+  --uc-primary-rgb: 31, 93, 76;
+  --uc-primary-hover-rgb: 26, 78, 64;
+}
+
+@media (max-width: 640px) {
+  .re-content {
+    padding: 20px 16px 44px;
+  }
+  .re-select-block,
+  .re-select-font {
+    width: 96px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .re *,
+  .re *::before,
+  .re *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
