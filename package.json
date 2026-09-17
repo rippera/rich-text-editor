@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "A TinyMCE-style WYSIWYG editor component with file and image uploads handled by [`@uploadcare/file-uploader`](https://github.com/uploadcare/file-uploader).",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
